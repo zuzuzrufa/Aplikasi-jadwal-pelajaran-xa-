@@ -1,0 +1,198 @@
+import React, { useState, useEffect, useMemo } from 'react';
+
+// Data jadwal pelajaran, diubah agar sesuai dengan format yang lebih mudah diolah
+const scheduleRawData = [
+  // SENIN
+  { "hari": "Senin", "jam": "06:30 - 07:15", "mapel": "Upacara Bendera", "guru": "-" },
+  { "hari": "Senin", "jam": "07:15 - 08:00", "mapel": "Penjaskes", "guru": "Andi Sihotang, S.Pd." },
+  { "hari": "Senin", "jam": "08:00 - 08:45", "mapel": "Penjaskes", "guru": "Andi Sihotang, S.Pd." },
+  { "hari": "Senin", "jam": "08:45 - 09:30", "mapel": "Kimia", "guru": "Anwar Andriyanto, S.Pd., SI" },
+  { "hari": "Senin", "jam": "09:30 - 09:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Senin", "jam": "09:45 - 10:30", "mapel": "Kimia", "guru": "Anwar Andriyanto, S.Pd., SI" },
+  { "hari": "Senin", "jam": "10:30 - 11:15", "mapel": "Biologi", "guru": "Sukarya Zainal Arifin, S.Pd." },
+  { "hari": "Senin", "jam": "11:15 - 12:00", "mapel": "Biologi", "guru": "Sukarya Zainal Arifin, S.Pd." },
+  { "hari": "Senin", "jam": "12:00 - 12:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Senin", "jam": "12:45 - 13:30", "mapel": "Matematika", "guru": "Ismail Fikri, S.Pd." },
+  { "hari": "Senin", "jam": "13:30 - 14:15", "mapel": "Matematika", "guru": "Ismail Fikri, S.Pd." },
+  { "hari": "Senin", "jam": "14:15 - 15:00", "mapel": "Matematika", "guru": "Ismail Fikri, S.Pd." },
+  // SELASA
+  { "hari": "Selasa", "jam": "06:30 - 07:15", "mapel": "Ekonomi", "guru": "Netty Nurchayani, S.E." },
+  { "hari": "Selasa", "jam": "07:15 - 08:00", "mapel": "Ekonomi", "guru": "Netty Nurchayani, S.E." },
+  { "hari": "Selasa", "jam": "08:00 - 08:45", "mapel": "Bahasa Sunda", "guru": "Damis Dewi Sundansi, S.Pd., M.Pd." },
+  { "hari": "Selasa", "jam": "08:45 - 09:30", "mapel": "Bahasa Sunda", "guru": "Damis Dewi Sundansi, S.Pd., M.Pd." },
+  { "hari": "Selasa", "jam": "09:30 - 09:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Selasa", "jam": "09:45 - 10:30", "mapel": "Prakarya dan Kewirausahaan", "guru": "Yanti Oktaviyani, S.Pd." },
+  { "hari": "Selasa", "jam": "10:30 - 11:15", "mapel": "Prakarya dan Kewirausahaan", "guru": "Yanti Oktaviyani, S.Pd." },
+  { "hari": "Selasa", "jam": "11:15 - 12:00", "mapel": "Bimbingan Konseling", "guru": "Nela Eliza, M.Pd." },
+  { "hari": "Selasa", "jam": "12:00 - 12:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Selasa", "jam": "12:45 - 13:30", "mapel": "Bahasa Indonesia", "guru": "Supriyanah, S.Pd." },
+  { "hari": "Selasa", "jam": "13:30 - 14:15", "mapel": "Bahasa Indonesia", "guru": "Supriyanah, S.Pd." },
+  { "hari": "Selasa", "jam": "14:15 - 15:00", "mapel": "Bahasa Indonesia", "guru": "Supriyanah, S.Pd." },
+  // RABU
+  { "hari": "Rabu", "jam": "06:30 - 07:15", "mapel": "Sejarah", "guru": "Yunita Purnamasari, S.Pd." },
+  { "hari": "Rabu", "jam": "07:15 - 08:00", "mapel": "Sejarah", "guru": "Yunita Purnamasari, S.Pd." },
+  { "hari": "Rabu", "jam": "08:00 - 08:45", "mapel": "Sosiologi", "guru": "Fitri Wulan Sari, S.Pd." },
+  { "hari": "Rabu", "jam": "08:45 - 09:30", "mapel": "Sosiologi", "guru": "Fitri Wulan Sari, S.Pd." },
+  { "hari": "Rabu", "jam": "09:30 - 09:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Rabu", "jam": "09:45 - 10:30", "mapel": "Bahasa Inggris", "guru": "Siti Daitroutl Rahmah, S.Pd." },
+  { "hari": "Rabu", "jam": "10:30 - 11:15", "mapel": "Bahasa Inggris", "guru": "Siti Daitroutl Rahmah, S.Pd." },
+  { "hari": "Rabu", "jam": "11:15 - 12:00", "mapel": "Bahasa Inggris", "guru": "Siti Daitroutl Rahmah, S.Pd." },
+  { "hari": "Rabu", "jam": "12:00 - 12:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Rabu", "jam": "12:45 - 13:30", "mapel": "Bimbingan Konseling", "guru": "Nela Eliza, M.Pd." },
+  { "hari": "Rabu", "jam": "13:30 - 14:15", "mapel": "Informatika", "guru": "Mahmud Husaini Fikri, S.Kom." },
+  { "hari": "Rabu", "jam": "14:15 - 15:00", "mapel": "Informatika", "guru": "Mahmud Husaini Fikri, S.Kom." },
+  // KAMIS
+  { "hari": "Kamis", "jam": "06:30 - 07:15", "mapel": "PABP", "guru": "Komarudin MZ, S.Pd.I." },
+  { "hari": "Kamis", "jam": "07:15 - 08:00", "mapel": "PABP", "guru": "Komarudin MZ, S.Pd.I." },
+  { "hari": "Kamis", "jam": "08:00 - 08:45", "mapel": "Pendidikan Pancasila", "guru": "Syarfiah Aeni, S.Pd." },
+  { "hari": "Kamis", "jam": "08:45 - 09:30", "mapel": "Pendidikan Pancasila", "guru": "Syarfiah Aeni, S.Pd." },
+  { "hari": "Kamis", "jam": "09:30 - 09:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Kamis", "jam": "09:45 - 10:30", "mapel": "Fisika", "guru": "Anas Mustafa, S.Pd., SI" },
+  { "hari": "Kamis", "jam": "10:30 - 11:15", "mapel": "Fisika", "guru": "Anas Mustafa, S.Pd., SI" },
+  { "hari": "Kamis", "jam": "11:15 - 12:00", "mapel": "Geografi", "guru": "Lilis Rossuwasti, S.Pd." },
+  { "hari": "Kamis", "jam": "12:00 - 12:45", "mapel": "Istirahat", "guru": "-" },
+  { "hari": "Kamis", "jam": "12:45 - 13:30", "mapel": "Geografi", "guru": "Lilis Rossuwasti, S.Pd." },
+  { "hari": "Kamis", "jam": "13:30 - 14:15", "mapel": "Kecerdasan Artifisial", "guru": "Destria Faizin Mu’izhat, S.T." },
+  { "hari": "Kamis", "jam": "14:15 - 15:00", "mapel": "Kecerdasan Artifisial", "guru": "Destria Faizin Mu’izhat, S.T." },
+  // JUMAT
+  { "hari": "Jumat", "jam": "06:30 - 15:00", "mapel": "Projek (P5)", "guru": "-" }
+].map((item, index) => {
+    // Menambahkan ID unik dan memisahkan jam mulai/selesai untuk kemudahan pemrosesan
+    const [startTime, endTime] = item.jam.split(' - ');
+    return { ...item, id: index, startTime, endTime };
+});
+
+// Komponen utama aplikasi
+export default function App() {
+    // State untuk menyimpan nilai filter dan pencarian
+    const [dayFilter, setDayFilter] = useState('semua');
+    const [searchTerm, setSearchTerm] = useState('');
+    // State untuk menyimpan waktu saat ini, diperbarui setiap menit
+    const [now, setNow] = useState(new Date());
+
+    // useEffect untuk mengatur interval pembaruan waktu
+    useEffect(() => {
+        const timerId = setInterval(() => setNow(new Date()), 60000); // Update setiap 60 detik
+        return () => clearInterval(timerId); // Membersihkan interval saat komponen dilepas
+    }, []);
+
+    // Memoized value untuk jadwal yang telah difilter
+    // Ini akan dihitung ulang hanya jika data, filter, atau pencarian berubah
+    const filteredSchedule = useMemo(() => {
+        return scheduleRawData.filter(item => {
+            const dayMatch = dayFilter === 'semua' || item.hari === dayFilter;
+            const searchMatch = searchTerm === '' ||
+                item.mapel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.guru.toLowerCase().includes(searchTerm.toLowerCase());
+            return dayMatch && searchMatch;
+        });
+    }, [dayFilter, searchTerm]);
+
+    // Fungsi untuk mengecek apakah suatu pelajaran sedang berlangsung
+    const isCurrentClass = (item) => {
+        const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const currentDayName = dayNames[now.getDay()];
+
+        if (item.hari !== currentDayName) return false;
+
+        const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+        
+        const [startH, startM] = item.startTime.split(':').map(Number);
+        const startTimeInMinutes = startH * 60 + startM;
+        
+        const [endH, endM] = item.endTime.split(':').map(Number);
+        const endTimeInMinutes = endH * 60 + endM;
+
+        return currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
+    };
+
+    return (
+        <div className="bg-gray-50 text-gray-800 min-h-screen font-sans">
+            <div className="container mx-auto p-4 md:p-8 max-w-5xl">
+                
+                {/* Header */}
+                <header className="text-center mb-8">
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Jadwal Pelajaran Kelas X A</h1>
+                    <p className="text-md text-gray-600 mt-2">SMA Negeri 1 Dramaga - Semester Ganjil 2025/2026</p>
+                </header>
+
+                {/* Kontrol Filter dan Pencarian */}
+                <div className="flex flex-col md:flex-row gap-4 mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="flex-1">
+                        <label htmlFor="day-filter" className="block text-sm font-medium text-gray-700 mb-1">Filter Hari</label>
+                        <select 
+                            id="day-filter"
+                            value={dayFilter}
+                            onChange={(e) => setDayFilter(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        >
+                            <option value="semua">Tampilkan Semua Hari</option>
+                            <option value="Senin">Senin</option>
+                            <option value="Selasa">Selasa</option>
+                            <option value="Rabu">Rabu</option>
+                            <option value="Kamis">Kamis</option>
+                            <option value="Jumat">Jumat</option>
+                        </select>
+                    </div>
+                    <div className="flex-1">
+                        <label htmlFor="search-box" className="block text-sm font-medium text-gray-700 mb-1">Cari Pelajaran / Guru</label>
+                        <input 
+                            type="text" 
+                            id="search-box" 
+                            placeholder="Ketik di sini..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        />
+                    </div>
+                </div>
+
+                {/* Tabel Jadwal */}
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-gray-600">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3">Hari</th>
+                                    <th scope="col" className="px-6 py-3">Jam</th>
+                                    <th scope="col" className="px-6 py-3">Mata Pelajaran</th>
+                                    <th scope="col" className="px-6 py-3">Guru</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredSchedule.length > 0 ? (
+                                    filteredSchedule.map(item => {
+                                        const isCurrent = isCurrentClass(item);
+                                        return (
+                                            <tr 
+                                                key={item.id} 
+                                                className={`bg-white border-b hover:bg-gray-50 transition-colors duration-200 ${isCurrent ? 'bg-yellow-100 border-l-4 border-yellow-400' : ''}`}
+                                            >
+                                                <td className={`px-6 py-4 font-medium whitespace-nowrap ${isCurrent ? 'text-gray-900 font-semibold' : 'text-gray-900'}`}>{item.hari}</td>
+                                                <td className="px-6 py-4">{item.jam}</td>
+                                                <td className="px-6 py-4">{item.mapel}</td>
+                                                <td className="px-6 py-4">{item.guru}</td>
+                                            </tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="text-center py-12 text-gray-500">
+                                            <p className="text-lg font-medium">Tidak ada hasil yang ditemukan.</p>
+                                            <p>Coba ubah filter atau kata kunci pencarian Anda.</p>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                {/* Footer */}
+                <footer className="text-center mt-8 text-sm text-gray-500">
+                    <p>Dibuat untuk SMAN 1 Dramaga. &copy; 2025</p>
+                </footer>
+            </div>
+        </div>
+    );
+}
